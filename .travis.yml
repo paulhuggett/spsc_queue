@@ -1,0 +1,67 @@
+language: cpp
+
+before_install:
+- eval "${MATRIX_EVAL}"
+
+jobs:
+    include:
+    -   addons:
+            apt:
+                packages:
+                - g++-9
+                sources:
+                - ubuntu-toolchain-r-test
+        dist: xenial
+        env:
+        - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"
+        - TRACE_ENABLED=Yes
+        - FNV1_HASH_ENABLED=Yes
+        - CMAKE_BUILD_TYPE=Debug
+        os: linux
+    -   addons:
+            apt:
+                packages:
+                - g++-9
+                sources:
+                - ubuntu-toolchain-r-test
+        dist: xenial
+        env:
+        - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"
+        - CMAKE_BUILD_TYPE=Debug
+        os: linux
+    -   addons:
+            apt:
+                packages:
+                - g++-9
+                sources:
+                - ubuntu-toolchain-r-test
+        dist: xenial
+        env:
+        - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"
+        - CMAKE_BUILD_TYPE=Release
+        os: linux
+
+
+    -   env:
+        - CMAKE_BUILD_TYPE=Debug
+        os: osx
+        osx_image: xcode9.3
+    -   env:
+        - CMAKE_BUILD_TYPE=Release
+        os: osx
+        osx_image: xcode9.3
+
+
+    -   env:
+        - CMAKE_BUILD_TYPE=Debug
+        os: windows
+    -   env:
+        - CMAKE_BUILD_TYPE=Release
+        os: windows
+
+script:
+- mkdir build
+- cd build
+- cmake -D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -D TRACE_ENABLED=${TRACE_ENABLED} -D FNV1_HASH_ENABLED=${FNV1_HASH_ENABLED} ..
+- cd ..
+- cmake --build build --config ${CMAKE_BUILD_TYPE}
