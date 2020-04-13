@@ -51,7 +51,6 @@ endfunction()
 
 find_package(Threads REQUIRED)
 add_executable (spsc_queue
-    empty_value.hpp
     main.cpp
     spsc_queue.hpp
 )
