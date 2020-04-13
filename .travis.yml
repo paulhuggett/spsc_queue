@@ -14,19 +14,6 @@ jobs:
         dist: xenial
         env:
         - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"
-        - TRACE_ENABLED=Yes
-        - FNV1_HASH_ENABLED=Yes
-        - CMAKE_BUILD_TYPE=Debug
-        os: linux
-    -   addons:
-            apt:
-                packages:
-                - g++-9
-                sources:
-                - ubuntu-toolchain-r-test
-        dist: xenial
-        env:
-        - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"
         - CMAKE_BUILD_TYPE=Debug
         os: linux
     -   addons:
