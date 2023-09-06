@@ -1,0 +1,119 @@
+name: CI Build & Test
+# Triggers the workflow on push or pull request events
+on: [push, pull_request]
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          # macOS builds
+          # ~~~~~~~~~~~~
+          - name: macOS-12/Xcode/Debug
+            build_type: Debug
+            generator: Xcode
+            options:
+            os: macos-12
+
+          - name: macOS-12/Xcode/Release
+            build_type: Release
+            generator: Xcode
+            options:
+            os: macos-12
+
+          # Linux builds
+          # ~~~~~~~~~~~~
+          - name: Ubuntu-20.04/clang-8/Debug/C++17
+            apt_install: clang-8 cmake libc++-8-dev libc++abi-8-dev ninja-build
+            build_type: Debug
+            cxx_compiler: -DCMAKE_CXX_COMPILER=clang++-8 -DCMAKE_C_COMPILER=clang-8
+            generator: Ninja
+            options:
+            os: ubuntu-20.04
+
+          - name: Ubuntu-22.04/gcc-11/Debug
+            apt_install: cmake ninja-build
+            build_type: Debug
+            generator: Ninja
+            options:
+            os: ubuntu-22.04
+
+          - name: Ubuntu-22.04/gcc-11/Release
+            apt_install: cmake ninja-build
+            build_type: Release
+            generator: Ninja
+            options:
+            os: ubuntu-22.04
+
+          - name: Ubuntu-22.04/clang-14/Debug
+            apt_install: clang-14 cmake libc++-dev libc++abi-dev ninja-build
+            build_type: Debug
+            cxx_compiler: -DCMAKE_CXX_COMPILER=clang++-14 -DCMAKE_C_COMPILER=clang-14
+            generator: Ninja
+            options:
+            os: ubuntu-22.04
+
+          - name: Ubuntu-22.04/clang-14/Release
+            apt_install: clang-14 cmake libc++-dev libc++abi-dev ninja-build
+            build_type: Release
+            cxx_compiler: -DCMAKE_CXX_COMPILER=clang++-14 -DCMAKE_C_COMPILER=clang-14
+            generator: Ninja
+            options:
+            os: ubuntu-22.04
+
+          - name: Ubuntu-22.04/clang-14/Release/C++17
+            apt_install: clang-14 cmake ninja-build
+            build_type: Release
+            cxx_compiler: -DCMAKE_CXX_COMPILER=clang++-14 -DCMAKE_C_COMPILER=clang-14
+            generator: Ninja
+            options:
+            os: ubuntu-22.04
+
+          # Windows builds
+          # ~~~~~~~~~~~~~~
+          - name: Windows-latest/VS2022/Debug
+            build_type: Debug
+            generator: Visual Studio 17 2022
+            options:
+            os: windows-latest
+
+          - name: Windows-latest/VS2022/Release
+            build_type: Release
+            generator: Visual Studio 17 2022
+            options:
+            os: windows-latest
+
+          - name: Windows-latest/VS2022/Debug/C++17
+            build_type: Debug
+            generator: Visual Studio 17 2022
+            options:
+            os: windows-latest
+
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: 'True'
+
+      - name: Install Dependencies (Linux)
+        if: startsWith (matrix.os, 'ubuntu-') && matrix.apt_install != ''
+        run: sudo apt-get update && sudo apt-get install -y ${{ matrix.apt_install }}
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{ github.workspace }}/build
+
+      - name: Configure CMake
+        shell: bash
+        run: |
+          cmake -S "$GITHUB_WORKSPACE"                       \
+                -B "${{ github.workspace }}/build"           \
+                -G "${{ matrix.generator }}"                 \
+                -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                ${{ matrix.cxx_compiler }}                   \
+                ${{ matrix.options }}
+
+      - name: Build
+        shell: bash
+        run: cmake --build "${{ github.workspace }}/build" --config ${{ matrix.build_type }}
