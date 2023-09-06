@@ -14,6 +14,12 @@
 #include <type_traits>
 #include <vector>
 
+#ifdef __cpp_lib_hardware_interference_size
+using std::hardware_destructive_interference_size;
+#else
+constexpr inline auto hardware_destructive_interference_size = std::size_t{64};
+#endif
+
 template <typename T>
 class spsc_queue {
 public:
@@ -31,30 +37,21 @@ public:
   std::optional<T> pop ();
 
 private:
-  using cache_line_pad = std::array<std::uint8_t, 64>;
-
-  cache_line_pad const pad0_;
   using buffer_member =
     typename std::aligned_storage<sizeof (T), alignof (T)>::type;
-  std::vector<buffer_member> buffer_;
-  std::size_t const mask_;
+  alignas (
+    hardware_destructive_interference_size) std::vector<buffer_member> buffer_;
+  std::size_t const mask_ = 0;
 
-  cache_line_pad const pad1_;
-  std::atomic<std::size_t> head_;
-
-  cache_line_pad const pad2_;
-  std::atomic<std::size_t> tail_;
+  alignas (
+    hardware_destructive_interference_size) std::atomic<std::size_t> head_ = 0;
+  alignas (
+    hardware_destructive_interference_size) std::atomic<std::size_t> tail_ = 0;
 };
 
 template <typename T>
 spsc_queue<T>::spsc_queue (std::size_t size)
-    : pad0_{},
-      buffer_ (size + 1U, buffer_member{}),
-      mask_{size - 1U},
-      pad1_{},
-      head_{0},
-      pad2_{},
-      tail_{0} {
+    : buffer_ (size + 1U, buffer_member{}), mask_{size - 1U} {
   // Verify that size is a power of 2.
   assert (size != 0U && (size & (~size + 1U)) == size);
 }
