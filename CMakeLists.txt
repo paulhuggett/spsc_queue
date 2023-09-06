@@ -1,9 +1,7 @@
 cmake_minimum_required (VERSION 3.10)
 project (spsc_queue CXX)
 
-
 option (COVERAGE_ENABLED "Capture coverage data")
-
 
 function (configure_target target)
     set_target_properties (${target} PROPERTIES
@@ -37,7 +35,6 @@ function (configure_target target)
             -Wno-c++98-compat
             -Wno-c++98-compat-pedantic
             -Wno-padded
-            -stdlib=libc++
         )
         if (COVERAGE_ENABLED)
             target_compile_options (${target} PRIVATE -fprofile-instr-generate -fcoverage-mapping)
